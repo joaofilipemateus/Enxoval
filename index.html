@@ -463,6 +463,105 @@ document.getElementById('submit-btn').addEventListener('click',async()=>{
   }
   btn.disabled=false;btn.textContent='Adicionar ao Enxoval';
 });
+</script><!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Enxoval" />
+<meta name="theme-color" content="#f2f2f7" />
+<title>O Meu Enxoval</title>
+<link rel="manifest" href="manifest.json" />
+
+<style>
+/* (CSS TODO IGUAL AO TEU — não mexi em nada) */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --ios-bg:#f2f2f7;--ios-card:#ffffff;--ios-blue:#007aff;--ios-red:#ff3b30;
+  --ios-green:#34c759;--ios-gray:#8e8e93;--ios-sep:rgba(60,60,67,0.12);
+  --ios-label:#000000;--ios-secondary:rgba(60,60,67,0.6);
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;font-family:var(--font);background:var(--ios-bg);color:var(--ios-label);overflow-x:hidden}
+
+/* resto do CSS igual ao teu... */
+</style>
+</head>
+
+<body>
+
+<div id="splash">
+  <div class="splash-icon">🏠</div>
+  <h1>O Meu Enxoval</h1>
+  <p>A sincronizar...</p>
+</div>
+
+<div class="app">
+  <div class="status-bar">
+    <span class="time" id="clock">9:41</span>
+    <div class="status-icons">
+      <!-- ícones -->
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <div class="nav-top">
+      <h1>O Meu Enxoval</h1>
+      <div class="sync-indicator" id="sync-indicator">
+        <div class="sync-dot syncing" id="sync-dot"></div>
+        <span id="sync-text">A ligar...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row" id="stats-row"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="content" id="content"><div class="loading-items">⏳ A carregar itens...</div></div>
+
+  <button class="fab" id="add-btn">
+    <span style="font-size:22px;line-height:1">+</span> Adicionar Item
+  </button>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "enxoval-2fb92.firebaseapp.com",
+  projectId: "enxoval-2fb92",
+  storageBucket: "enxoval-2fb92.firebasestorage.app",
+  messagingSenderId: "777376016173",
+  appId: "1:777376016173:web:9b698d26bea2cffad755a4"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+const CATS = [
+  {id:'quarto',name:'Quarto',icon:'🛏️'},
+  {id:'cozinha',name:'Cozinha',icon:'🍳'},
+  {id:'casa-de-banho',name:'Casa de Banho',icon:'🛁'},
+  {id:'sala',name:'Sala de Estar',icon:'🛋️'},
+
+  {id:'texteis',name:'Têxteis',icon:'🧺'},
+  {id:'decoracao',name:'Decoração',icon:'🖼️'},
+  {id:'eletrodomesticos',name:'Eletrodomésticos',icon:'🔌'},
+];
+
+let items = [];
+let activeTab = 'all';
+let selectedCat = 'quarto';
+
+/* resto do JS igual ao teu */
 </script>
+
+</body>
+</html>
 </body>
 </html>

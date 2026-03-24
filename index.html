@@ -264,7 +264,7 @@ function setSyncStatus(state){
   const dot=document.getElementById('sync-dot');
   const txt=document.getElementById('sync-text');
   dot.className='sync-dot';
-  if(state==='ok'){dot.classList.add('');dot.style.background='#34c759';txt.textContent='Sincronizado';}
+  if(state==='ok'){dot.style.background='#34c759';txt.textContent='Sincronizado';}
   else if(state==='syncing'){dot.classList.add('syncing');dot.style.background='';txt.textContent='A sincronizar...';}
   else{dot.style.background='#ff3b30';txt.textContent='Sem ligação';}
 }

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Enxoval" />
+<meta name="theme-color" content="#f2f2f7" />
+<title>O Meu Enxoval</title>
+<link rel="manifest" href="manifest.json" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --ios-bg:#f2f2f7;--ios-card:#ffffff;--ios-blue:#007aff;--ios-red:#ff3b30;
+  --ios-green:#34c759;--ios-gray:#8e8e93;--ios-sep:rgba(60,60,67,0.12);
+  --ios-label:#000000;--ios-secondary:rgba(60,60,67,0.6);
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;font-family:var(--font);background:var(--ios-bg);color:var(--ios-label);overflow-x:hidden}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--ios-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity 0.4s}
+#splash .splash-icon{width:80px;height:80px;background:var(--ios-blue);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,122,255,0.3)}
+#splash h1{font-size:24px;font-weight:700;margin-bottom:6px}
+#splash p{font-size:14px;color:var(--ios-gray)}
+#splash.hidden{opacity:0;pointer-events:none}
+
+.app{max-width:430px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden}
+
+/* STATUS BAR */
+.status-bar{height:calc(44px + var(--safe-top));padding-top:var(--safe-top);background:var(--ios-bg);display:flex;align-items:flex-end;justify-content:space-between;padding-left:20px;padding-right:20px;padding-bottom:6px;font-size:15px;font-weight:600}
+.status-bar .time{font-weight:700;font-size:16px}
+.status-icons{display:flex;gap:6px;align-items:center;font-size:12px}
+
+/* NAV */
+.nav-bar{background:rgba(242,242,247,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:4px 20px 12px;position:sticky;top:0;z-index:10;border-bottom:0.5px solid var(--ios-sep)}
+.nav-top{display:flex;align-items:flex-start;justify-content:space-between}
+.nav-bar h1{font-size:34px;font-weight:700;letter-spacing:-0.5px}
+.sync-indicator{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ios-gray);margin-top:12px;padding:4px 8px;background:var(--ios-card);border-radius:20px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--ios-green)}
+.sync-dot.syncing{background:var(--ios-blue);animation:pulse 1s infinite}
+.sync-dot.error{background:var(--ios-red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* TABS */
+.tabs{display:flex;gap:8px;padding:10px 16px 6px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:14px;font-weight:500;border:none;cursor:pointer;transition:all 0.2s;background:var(--ios-card);color:var(--ios-gray);font-family:var(--font)}
+.tab.active{background:var(--ios-blue);color:#fff}
+.tab .count{display:inline-block;border-radius:10px;padding:0 5px;font-size:11px;margin-left:3px;background:rgba(255,255,255,0.25)}
+.tab:not(.active) .count{background:var(--ios-sep);color:var(--ios-gray)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 16px 4px}
+.stat-card{background:var(--ios-card);border-radius:14px;padding:10px 6px;text-align:center}
+.stat-icon{font-size:20px;display:block}
+.stat-num{font-size:18px;font-weight:700;display:block;color:var(--ios-label)}
+.stat-lbl{font-size:10px;color:var(--ios-gray);display:block;font-weight:500;margin-top:1px}
+
+/* CONTENT */
+.content{padding:8px 16px 120px}
+.section-header{font-size:13px;font-weight:600;color:var(--ios-gray);text-transform:uppercase;letter-spacing:0.5px;padding:16px 4px 8px}
+.items-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ITEM CARD */
+.item-card{background:var(--ios-card);border-radius:16px;overflow:hidden;position:relative;cursor:pointer;transition:transform 0.15s}
+.item-card:active{transform:scale(0.96)}
+.item-card .photo{width:100%;aspect-ratio:1;object-fit:cover;background:var(--ios-sep);display:flex;align-items:center;justify-content:center;font-size:44px;overflow:hidden}
+.item-card .photo img{width:100%;height:100%;object-fit:cover}
+.item-card .info{padding:10px 12px 12px}
+.item-card .name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-card .cat-badge{font-size:11px;color:var(--ios-gray);margin-top:2px}
+.qty-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);color:#fff;font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px}
+.del-btn{position:absolute;top:8px;left:8px;background:rgba(255,59,48,0.9);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:18px;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;font-family:var(--font)}
+.item-card:hover .del-btn,.item-card:focus-within .del-btn{display:flex}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 20px;color:var(--ios-gray)}
+.empty-state .icon{font-size:52px;margin-bottom:12px}
+.empty-state p{font-size:16px;font-weight:500;margin-bottom:6px;color:var(--ios-label)}
+.empty-state small{font-size:14px}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(28px + var(--safe-bottom));left:50%;transform:translateX(-50%);width:calc(min(430px,100%) - 32px);background:var(--ios-blue);color:#fff;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;z-index:20;font-family:var(--font);box-shadow:0 4px 20px rgba(0,122,255,0.35);transition:opacity 0.15s}
+.fab:active{opacity:0.8}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--ios-card);border-radius:22px 22px 0 0;width:100%;max-width:430px;padding-bottom:calc(24px + var(--safe-bottom));max-height:92vh;overflow-y:auto;animation:slideUp 0.32s cubic-bezier(0.32,0.72,0,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:5px;background:var(--ios-sep);border-radius:3px;margin:10px auto 0}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:0.5px solid var(--ios-sep)}
+.modal-header h2{font-size:17px;font-weight:700}
+.modal-header button{background:none;border:none;color:var(--ios-blue);font-size:17px;cursor:pointer;font-family:var(--font)}
+.modal-body{padding:16px 20px}
+
+/* FORM */
+.form-group{margin-bottom:16px}
+.form-label{font-size:13px;font-weight:600;color:var(--ios-gray);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--ios-bg);border:none;border-radius:12px;padding:13px 15px;font-size:16px;font-family:var(--font);color:var(--ios-label);outline:none;appearance:none}
+.form-input:focus{outline:2px solid var(--ios-blue);outline-offset:-2px}
+.form-input.error{outline:2px solid var(--ios-red);outline-offset:-2px}
+
+.cat-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cat-option{background:var(--ios-bg);border:2px solid transparent;border-radius:12px;padding:12px;cursor:pointer;text-align:center;transition:all 0.15s;font-family:var(--font)}
+.cat-option.selected{border-color:var(--ios-blue);background:rgba(0,122,255,0.07)}
+.cat-option .cat-icon{font-size:26px;display:block;margin-bottom:4px}
+.cat-option .cat-name{font-size:13px;font-weight:500;color:var(--ios-label)}
+
+/* PHOTO */
+.photo-picker{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.photo-picker::-webkit-scrollbar{display:none}
+.photo-add-btn{flex-shrink:0;width:80px;height:80px;border-radius:14px;background:var(--ios-bg);border:1.5px dashed var(--ios-gray);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--ios-blue);font-size:24px}
+.photo-add-btn span{font-size:11px;font-weight:500;color:var(--ios-blue)}
+.photo-thumb-wrap{flex-shrink:0;position:relative;width:80px;height:80px}
+.photo-thumb-wrap img{width:80px;height:80px;border-radius:14px;object-fit:cover}
+.photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--ios-red);color:#fff;border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+
+.submit-btn{width:100%;background:var(--ios-blue);color:#fff;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:600;cursor:pointer;margin-top:8px;font-family:var(--font);transition:opacity 0.15s}
+.submit-btn:active{opacity:0.8}
+.submit-btn:disabled{opacity:0.5}
+
+/* DETAIL */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+.detail-card{background:var(--ios-card);border-radius:20px;width:100%;max-width:380px;overflow:hidden;animation:popIn 0.25s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes popIn{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
+.detail-img{width:100%;height:220px;object-fit:cover}
+.detail-no-img{width:100%;height:160px;display:flex;align-items:center;justify-content:center;font-size:70px;background:var(--ios-bg)}
+.detail-info{padding:16px 20px 20px}
+.detail-name{font-size:22px;font-weight:700;margin-bottom:4px}
+.detail-meta{font-size:14px;color:var(--ios-gray);margin-bottom:10px}
+.detail-notes{font-size:15px;color:var(--ios-secondary);line-height:1.5;margin-bottom:16px;background:var(--ios-bg);padding:10px 12px;border-radius:10px}
+.detail-actions{display:flex;gap:8px}
+.detail-close{flex:1;background:var(--ios-bg);border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);color:var(--ios-blue)}
+.detail-delete{background:rgba(255,59,48,0.1);border:none;border-radius:12px;padding:13px 16px;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--font);color:var(--ios-red)}
+
+#photo-input{display:none}
+
+.loading-items{text-align:center;padding:40px;color:var(--ios-gray);font-size:15px}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-icon">🏠</div>
+  <h1>O Meu Enxoval</h1>
+  <p>A sincronizar...</p>
+</div>
+
+<div class="app">
+  <div class="status-bar">
+    <span class="time" id="clock">9:41</span>
+    <div class="status-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="0.5" width="3" height="11.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.4C5.6 2.4 3.4 3.4 1.8 5L0 3.2C2.1 1.2 4.9 0 8 0s5.9 1.2 8 3.2L14.2 5C12.6 3.4 10.4 2.4 8 2.4z"/><path d="M8 5.8c-1.5 0-2.8.6-3.8 1.5L2.4 5.5C3.8 4.3 5.8 3.5 8 3.5s4.2.8 5.6 2L11.8 7.3C10.8 6.4 9.5 5.8 8 5.8z"/><circle cx="8" cy="10" r="2"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="currentColor"><rect x="0" y="1" width="22" height="10" rx="2.5" stroke="currentColor" stroke-width="1" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="1.5"/><rect x="22.5" y="4" width="2" height="4" rx="1"/></svg>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <div class="nav-top">
+      <h1>O Meu Enxoval</h1>
+      <div class="sync-indicator" id="sync-indicator">
+        <div class="sync-dot syncing" id="sync-dot"></div>
+        <span id="sync-text">A ligar...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row" id="stats-row"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="content" id="content"><div class="loading-items">⏳ A carregar itens...</div></div>
+
+  <button class="fab" id="add-btn">
+    <span style="font-size:22px;line-height:1">+</span> Adicionar Item
+  </button>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="modal" style="display:none">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Novo Item</h2>
+      <button id="modal-close">Cancelar</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nome do item</label>
+        <input class="form-input" id="item-name" placeholder="ex: Jogo de lençóis" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <div class="cat-selector" id="cat-selector"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quantidade</label>
+        <input class="form-input" id="item-qty" type="number" min="1" value="1" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <input class="form-input" id="item-notes" placeholder="Marca, cor, tamanho..." autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fotografia</label>
+        <div class="photo-picker" id="photo-picker">
+          <div class="photo-add-btn" id="photo-add-btn">
+            <span style="font-size:24px">📷</span>
+            <span>Foto</span>
+          </div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" capture="environment" />
+      </div>
+      <button class="submit-btn" id="submit-btn">Adicionar ao Enxoval</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="detail-overlay" id="detail" style="display:none">
+  <div class="detail-card" id="detail-card"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCGkZtGbQgoMBungJrKm62ir3nEQf7raQc",
+  authDomain: "enxoval-2fb92.firebaseapp.com",
+  projectId: "enxoval-2fb92",
+  storageBucket: "enxoval-2fb92.firebasestorage.app",
+  messagingSenderId: "777376016173",
+  appId: "1:777376016173:web:9b698d26bea2cffad755a4"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+const CATS = [
+  {id:'quarto',name:'Quarto',icon:'🛏️'},
+  {id:'cozinha',name:'Cozinha',icon:'🍳'},
+  {id:'casa-de-banho',name:'Casa de Banho',icon:'🛁'},
+  {id:'sala',name:'Sala de Estar',icon:'🛋️'},
+];
+
+let items = [];
+let activeTab = 'all';
+let selectedCat = 'quarto';
+let pendingPhoto = null;
+
+// Clock
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.getHours()+':'+String(n.getMinutes()).padStart(2,'0');
+}
+updateClock(); setInterval(updateClock,10000);
+
+// Sync status
+function setSyncStatus(state){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-text');
+  dot.className='sync-dot';
+  if(state==='ok'){dot.classList.add('');dot.style.background='#34c759';txt.textContent='Sincronizado';}
+  else if(state==='syncing'){dot.classList.add('syncing');dot.style.background='';txt.textContent='A sincronizar...';}
+  else{dot.style.background='#ff3b30';txt.textContent='Sem ligação';}
+}
+
+// Firestore listener
+const q = query(collection(db,'items'), orderBy('createdAt','asc'));
+onSnapshot(q, (snap) => {
+  items = snap.docs.map(d=>({id:d.id,...d.data()}));
+  setSyncStatus('ok');
+  document.getElementById('splash').classList.add('hidden');
+  render();
+}, (err) => {
+  console.error(err);
+  setSyncStatus('error');
+  document.getElementById('splash').classList.add('hidden');
+});
+
+function getCat(id){return CATS.find(c=>c.id===id)||CATS[0];}
+function countByCat(id){return items.filter(i=>i.cat===id).length;}
+
+function renderStats(){
+  document.getElementById('stats-row').innerHTML=CATS.map(c=>`
+    <div class="stat-card">
+      <span class="stat-icon">${c.icon}</span>
+      <span class="stat-num">${countByCat(c.id)}</span>
+      <span class="stat-lbl">${c.name.split(' ')[0]}</span>
+    </div>`).join('');
+}
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=
+    `<button class="tab${activeTab==='all'?' active':''}" data-tab="all">Todos <span class="count">${items.length}</span></button>`+
+    CATS.map(c=>`<button class="tab${activeTab===c.id?' active':''}" data-tab="${c.id}">${c.icon} ${c.name} <span class="count">${countByCat(c.id)}</span></button>`).join('');
+  document.getElementById('tabs').querySelectorAll('.tab').forEach(b=>{
+    b.addEventListener('click',()=>{activeTab=b.dataset.tab;renderTabs();renderContent();});
+  });
+}
+
+function renderCard(item){
+  const cat=getCat(item.cat);
+  const photo=item.photo
+    ?`<div class="photo"><img src="${item.photo}" loading="lazy" /></div>`
+    :`<div class="photo">${cat.icon}</div>`;
+  return `<div class="item-card" data-id="${item.id}">
+    ${photo}
+    <div class="info">
+      <div class="name">${item.name}</div>
+      <div class="cat-badge">${cat.icon} ${cat.name}</div>
+    </div>
+    ${item.qty>1?`<div class="qty-badge">×${item.qty}</div>`:''}
+    <button class="del-btn" data-id="${item.id}" title="Remover">×</button>
+  </div>`;
+}
+
+function renderContent(){
+  const content=document.getElementById('content');
+  const filtered=activeTab==='all'?items:items.filter(i=>i.cat===activeTab);
+  if(filtered.length===0){
+    const cat=activeTab==='all'?null:getCat(activeTab);
+    content.innerHTML=`<div class="empty-state"><div class="icon">${cat?cat.icon:'🏠'}</div><p>Sem itens ${cat?'em '+cat.name:'ainda'}</p><small>Toca em "Adicionar Item" para começar</small></div>`;
+    return;
+  }
+  let html='';
+  if(activeTab==='all'){
+    CATS.forEach(c=>{
+      const ci=items.filter(i=>i.cat===c.id);
+      if(!ci.length)return;
+      html+=`<div class="section-header">${c.icon} ${c.name}</div><div class="items-grid">${ci.map(renderCard).join('')}</div>`;
+    });
+  } else {
+    html=`<div class="items-grid">${filtered.map(renderCard).join('')}</div>`;
+  }
+  content.innerHTML=html;
+  content.querySelectorAll('.item-card').forEach(card=>{
+    card.addEventListener('click',e=>{
+      if(e.target.classList.contains('del-btn')||e.target.closest('.del-btn'))return;
+      showDetail(card.dataset.id);
+    });
+  });
+  content.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();deleteItem(btn.dataset.id);});
+  });
+}
+
+function render(){renderStats();renderTabs();renderContent();}
+
+async function deleteItem(id){
+  if(!confirm('Remover este item?'))return;
+  setSyncStatus('syncing');
+  await deleteDoc(doc(db,'items',id));
+}
+
+function showDetail(id){
+  const item=items.find(i=>i.id===id);
+  if(!item)return;
+  const cat=getCat(item.cat);
+  const overlay=document.getElementById('detail');
+  document.getElementById('detail-card').innerHTML=`
+    ${item.photo?`<img class="detail-img" src="${item.photo}" />`:`<div class="detail-no-img">${cat.icon}</div>`}
+    <div class="detail-info">
+      <div class="detail-name">${item.name}</div>
+      <div class="detail-meta">${cat.icon} ${cat.name} · Quantidade: ${item.qty}</div>
+      ${item.notes?`<div class="detail-notes">${item.notes}</div>`:''}
+      <div class="detail-actions">
+        <button class="detail-close" id="d-close">Fechar</button>
+        <button class="detail-delete" id="d-del">🗑 Remover</button>
+      </div>
+    </div>`;
+  overlay.style.display='flex';
+  document.getElementById('d-close').addEventListener('click',()=>overlay.style.display='none');
+  document.getElementById('d-del').addEventListener('click',()=>{overlay.style.display='none';deleteItem(id);});
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.style.display='none';},{once:true});
+}
+
+// CAT SELECTOR
+function setupCatSelector(){
+  document.getElementById('cat-selector').innerHTML=CATS.map(c=>`
+    <button class="cat-option${selectedCat===c.id?' selected':''}" data-cat="${c.id}">
+      <span class="cat-icon">${c.icon}</span>
+      <span class="cat-name">${c.name}</span>
+    </button>`).join('');
+  document.getElementById('cat-selector').querySelectorAll('.cat-option').forEach(b=>{
+    b.addEventListener('click',()=>{selectedCat=b.dataset.cat;setupCatSelector();});
+  });
+}
+
+// PHOTO
+function setupPhotoBtn(){
+  const btn=document.getElementById('photo-add-btn');
+  if(btn) btn.addEventListener('click',()=>document.getElementById('photo-input').click());
+}
+
+document.getElementById('photo-input').addEventListener('change',function(){
+  const file=this.files[0];
+  if(!file)return;
+  // Compress image
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=h*(MAX/w);w=MAX;}}else{if(h>MAX){w=w*(MAX/h);h=MAX;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      pendingPhoto=canvas.toDataURL('image/jpeg',0.75);
+      const picker=document.getElementById('photo-picker');
+      picker.innerHTML=`<div class="photo-thumb-wrap"><img src="${pendingPhoto}" /><button class="photo-remove" id="photo-remove">×</button></div><div class="photo-add-btn" id="photo-add-btn"><span style="font-size:24px">📷</span><span>Foto</span></div>`;
+      setupPhotoBtn();
+      document.getElementById('photo-remove').addEventListener('click',()=>{
+        pendingPhoto=null;
+        picker.innerHTML=`<div class="photo-add-btn" id="photo-add-btn"><span style="font-size:24px">📷</span><span>Foto</span></div>`;
+        setupPhotoBtn();
+      });
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// OPEN MODAL
+document.getElementById('add-btn').addEventListener('click',()=>{
+  pendingPhoto=null;
+  document.getElementById('item-name').value='';
+  document.getElementById('item-qty').value='1';
+  document.getElementById('item-notes').value='';
+  document.getElementById('photo-picker').innerHTML=`<div class="photo-add-btn" id="photo-add-btn"><span style="font-size:24px">📷</span><span>Foto</span></div>`;
+  setupPhotoBtn();
+  setupCatSelector();
+  document.getElementById('modal').style.display='flex';
+  setTimeout(()=>document.getElementById('item-name').focus(),350);
+});
+
+document.getElementById('modal-close').addEventListener('click',()=>document.getElementById('modal').style.display='none');
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+
+// SUBMIT
+document.getElementById('submit-btn').addEventListener('click',async()=>{
+  const name=document.getElementById('item-name').value.trim();
+  if(!name){
+    document.getElementById('item-name').classList.add('error');
+    setTimeout(()=>document.getElementById('item-name').classList.remove('error'),1500);
+    return;
+  }
+  const qty=parseInt(document.getElementById('item-qty').value)||1;
+  const notes=document.getElementById('item-notes').value.trim();
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='A guardar...';
+  setSyncStatus('syncing');
+  try{
+    await addDoc(collection(db,'items'),{name,cat:selectedCat,qty,notes,photo:pendingPhoto||null,createdAt:serverTimestamp()});
+    document.getElementById('modal').style.display='none';
+  }catch(err){
+    console.error(err);alert('Erro ao guardar. Verifica a ligação.');
+  }
+  btn.disabled=false;btn.textContent='Adicionar ao Enxoval';
+});
+</script>
+</body>
+</html>

@@ -54,7 +54,7 @@ html,body{height:100%;font-family:var(--font);background:var(--ios-bg);color:var
 .tab:not(.active) .count{background:var(--ios-sep);color:var(--ios-gray)}
 
 /* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 16px 4px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 16px 4px;overflow-x:auto}
 .stat-card{background:var(--ios-card);border-radius:14px;padding:10px 6px;text-align:center}
 .stat-icon{font-size:20px;display:block}
 .stat-num{font-size:18px;font-weight:700;display:block;color:var(--ios-label)}
@@ -212,7 +212,7 @@ html,body{height:100%;font-family:var(--font);background:var(--ios-bg);color:var
             <span>Foto</span>
           </div>
         </div>
-        <input type="file" id="photo-input" accept="image/*" capture="environment" />
+        <input type="file" id="photo-input" accept="image/*" />
       </div>
       <button class="submit-btn" id="submit-btn">Adicionar ao Enxoval</button>
     </div>
